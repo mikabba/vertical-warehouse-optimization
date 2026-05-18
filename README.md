@@ -1,4 +1,11 @@
 ﻿# Vertical Warehouse Optimization
+---
+![MATLAB](https://img.shields.io/badge/MATLAB-R2022a%2B-orange)
+![Optimization](https://img.shields.io/badge/Optimization-Integer%20Programming-blue)
+![Algorithm](https://img.shields.io/badge/Algorithm-Priority%20Rules-purple)
+![Metrics](https://img.shields.io/badge/Metrics-Fill%20Ratio%20%7C%20Runtime-9cf)
+![Application](https://img.shields.io/badge/Application-VLM%20Storage-green)
+![Status](https://img.shields.io/badge/Status-Portfolio%20Project-lightgrey)
 
 MATLAB project for optimizing tray allocation in Vertical Lift Modules (VLMs), with the goal of reducing wasted space, maximizing column fill ratio, and comparing different allocation priority rules.
 
