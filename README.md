@@ -1,5 +1,9 @@
 ﻿# Vertical Warehouse Optimization
 
+<p align="center">
+  <img src="assets/vertical-warehouse-overview.png" alt="Vertical warehouse overview" width="760"/>
+</p>
+
 MATLAB project for optimizing tray allocation in Vertical Lift Modules (VLMs), with the goal of reducing wasted space, maximizing column fill ratio, and comparing different allocation priority rules.
 
 The project models the storage of trays with different heights inside fixed-height warehouse columns. It evaluates how different priority criteria affect the final storage configuration, the number of columns used, the remaining free space, and the execution time.
@@ -274,6 +278,8 @@ It depends on:
 
 The simulations compare multiple datasets, column heights, scenario sizes, tray distributions, and priority rules.
 
+### Fill ratio analysis
+
 The first result view compares fill ratio across priority rules before and after inserting empty trays.
 
 ![Fill ratio by priority rule](assets/fill-ratio-priority-rules.png)
@@ -282,34 +288,76 @@ The second result view shows the final fill ratio by column and priority rule af
 
 ![Fill ratio with full and empty trays](assets/fill-ratio-full-empty-trays.png)
 
+### Execution time analysis
+
+Execution time becomes relevant mainly for datasets with four tray types and larger column heights. In particular, the 9000 mm and 15000 mm column configurations show the clearest differences among scenarios and priority rules.
+
+<p align="center">
+  <img src="assets/execution-time-9000-homogeneous.png" alt="Execution time for homogeneous dataset with 9000 mm column" width="760"/>
+</p>
+
+<p align="center">
+  <img src="assets/execution-time-9000-heterogeneous.png" alt="Execution time for heterogeneous dataset with 9000 mm column" width="760"/>
+</p>
+
+<p align="center">
+  <img src="assets/execution-time-15000-homogeneous.png" alt="Execution time for homogeneous dataset with 15000 mm column" width="760"/>
+</p>
+
+<p align="center">
+  <img src="assets/execution-time-15000-heterogeneous.png" alt="Execution time for heterogeneous dataset with 15000 mm column" width="760"/>
+</p>
+
+The computational cost is mainly affected by:
+
+- the number of tray types;
+- the column height;
+- the residual free space produced after full-tray allocation;
+- the number of feasible empty-tray combinations generated during post-processing.
+
+### Average execution time by column height
+
+The following table summarizes the average execution time obtained by grouping the simulations by column height and tray distribution.
+
+| Column height [mm] | Homogeneous average time [s] | Heterogeneous average time [s] |
+|---:|---:|---:|
+| 3000 | 0.019667 | 0.020420 |
+| 9000 | 0.725210 | 0.397820 |
+| 15000 | 3.889200 | 6.541800 |
+
+These values show that execution time generally increases with column height, especially when the available residual space allows many possible empty-tray combinations.
+
+### Worst-case execution times
+
+The most critical execution times occur with larger column heights and four tray types. The table below reports representative worst-case configurations from the benchmark campaign.
+
+| Column height [mm] | Tray types | Quantity | Scenario | Priority rule | Execution time [s] | Columns | Full-tray occupied space [%] | Final occupied space [%] |
+|---:|---:|---:|---|---:|---:|---:|---:|---:|
+| 15000 | 4 | 24 | Heterogeneous | F | 185.097 | 1 | 26.0000 | 99.9933 |
+| 15000 | 4 | 12 | Heterogeneous | P | 110.635 | 1 | 13.0000 | 99.9933 |
+| 9000 | 4 | 48 | Homogeneous | A | 22.423 | 2 | 56.6667 | 100.0000 |
+| 15000 | 4 | 48 | Heterogeneous | G | 12.560 | 1 | 52.0000 | 99.9933 |
+| 9000 | 4 | 12 | Heterogeneous | I | 11.747 | 1 | 21.6667 | 99.9889 |
+| 15000 | 3 | 12 | Heterogeneous | L | 9.647 | 1 | 11.3333 | 99.9933 |
+| 15000 | 3 | 24 | Heterogeneous | A | 6.270 | 1 | 22.6667 | 99.9933 |
+| 9000 | 4 | 24 | Heterogeneous | M | 3.468 | 1 | 43.3333 | 99.9889 |
+
 ### Results interpretation
 
-The README reports the same metrics used by the MATLAB evaluation scripts. The table below explains how each metric should be read when inspecting the generated plots and numerical outputs.
-
-| Metric | How it is computed | What to inspect |
-|---|---|---|
-| Fill ratio | `occupied_height / available_height * 100` | Compare full-tray allocation against final allocation after empty-tray insertion. |
-| Residual free space | `column_height - occupied_height` | Check how much unused vertical height remains after each allocation phase. |
-| Number of columns | Count of columns required by the final allocation | Verify whether the final layout stays within the expected VLM column limit. |
-| Execution time | Runtime of each scenario / priority-rule simulation | Identify priority rules that produce high computational cost. |
-
-### Visual result mapping
-
-| Result shown in README | Metrics represented |
+| Metric | Interpretation |
 |---|---|
-| `fill-ratio-priority-rules.png` | Fill ratio and residual free space before/after empty-tray insertion, grouped by priority rule. |
-| `fill-ratio-full-empty-trays.png` | Final fill ratio by column and priority rule after post-processing. |
-| MATLAB numerical outputs | Number of columns, execution time, residual free space, and final warehouse configuration. |
+| Fill ratio | The post-processing phase significantly improves storage usage by inserting empty trays into residual free spaces. |
+| Residual free space | Residual free space is reduced after the empty-tray optimization step. |
+| Number of columns | The algorithm generates feasible configurations while keeping the number of columns within the expected warehouse limits. |
+| Execution time | Runtime varies across priority rules and scenario complexity; some rules are computationally more expensive because they generate larger feasible-combination sets. |
 
 Main observations:
 
-- the post-processing phase significantly improves storage usage by inserting empty trays into residual free spaces;
-- the final fill ratio reaches values close to 100% in several tested configurations after empty-tray insertion;
-- residual free space is reduced after the second optimization step;
-- execution time varies across priority rules and scenario complexity;
-- some priority rules are computationally more expensive because they generate larger feasible-combination sets.
-
-Future README improvements may include dedicated plots for execution time and column usage once the corresponding exported figures are selected or regenerated from MATLAB.
+- after empty-tray insertion, the final occupied space approaches 100% in most configurations;
+- residual free space is strongly reduced by the post-processing phase;
+- for 3000 mm columns, execution times are generally negligible;
+- for 9000 mm and 15000 mm columns, execution time becomes more sensitive to the selected priority rule;
+- the most critical cases are associated with four tray types and large residual free-space search spaces.
 
 ---
 
@@ -347,9 +395,14 @@ A typical reproduction workflow is:
 ```text
 vertical-warehouse-optimization/
 ├── assets/
+│   ├── vertical-warehouse-overview.png
 │   ├── algorithm-workflow.png
 │   ├── fill-ratio-priority-rules.png
-│   └── fill-ratio-full-empty-trays.png
+│   ├── fill-ratio-full-empty-trays.png
+│   ├── execution-time-9000-homogeneous.png
+│   ├── execution-time-9000-heterogeneous.png
+│   ├── execution-time-15000-homogeneous.png
+│   └── execution-time-15000-heterogeneous.png
 ├── data/
 │   └── sample/
 ├── docs/
@@ -402,11 +455,11 @@ Current limitations:
 
 Possible extensions include:
 
-- extending the analysis to additional tray-height distributions and warehouse configurations;
-- benchmarking the priority rules on larger and more heterogeneous datasets;
-- improving the computational efficiency of the most expensive priority rules;
-- comparing the proposed allocation strategy with alternative optimization methods;
-- adding automated scripts to reproduce the full benchmark campaign.
+- adding order-picking constraints to evaluate how space optimization affects VLM throughput;
+- comparing the current exhaustive feasible-combination strategy with heuristic or evolutionary methods;
+- evaluating Particle Swarm Optimization or Genetic Algorithms to reduce execution time;
+- extending the benchmark to additional warehouse layouts and tray-height distributions;
+- exporting simulation results to structured CSV or MATLAB tables for easier comparison.
 
 ---
 
