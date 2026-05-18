@@ -1,10 +1,8 @@
-﻿# MATLAB
+﻿# MATLAB temporary files
 *.asv
 *.m~
 *.autosave
 *.mex*
-*.mat
-*.fig
 slprj/
 codegen/
 
@@ -14,7 +12,15 @@ codegen/
 *_slrt_rtw/
 *.slxc
 
-# Data and generated outputs
+# MATLAB figures / generated binaries
+*.fig
+
+# Archives and compressed generated results
+*.zip
+*.rar
+*.7z
+
+# Raw/private data and generated outputs
 data/raw/
 results/generated/
 

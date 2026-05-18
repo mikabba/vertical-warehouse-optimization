@@ -55,14 +55,26 @@ The main performance indicators are:
 ```text
 vertical-warehouse-optimization/
 ├── src/
+│   ├── evalResult.m
+│   ├── evalResultMain.m
 │   ├── core/
+│   │   ├── EstimateColumn/
+│   │   ├── OptimizationAlgorithm/
+│   │   ├── OptimizationFullTray/
+│   │   └── OptimizationNewTray/
 │   ├── priority-rules/
-│   └── utils/
+│   │   └── PriorityRules/
+│   ├── utils/
+│   │   └── OtherFunction/
+│   └── visualization/
+│       └── view/
 ├── data/
 │   └── sample/
+│       └── dataSet/
 ├── docs/
 ├── results/
 │   └── plots/
+│       └── resultimageGraph/
 ├── reports/
 ├── README.md
 └── .gitignore
@@ -70,38 +82,61 @@ vertical-warehouse-optimization/
 
 ---
 
-## Planned contents
+## Source code organization
 
 ### `src/core`
 
-Core MATLAB scripts and functions for tray allocation and optimization.
+Core MATLAB functions for column estimation, tray allocation and optimization.
 
 ### `src/priority-rules`
 
-Implementation of the priority rules used to select tray types during the allocation process.
+Priority-rule implementations used to select tray types during the allocation process.
 
 ### `src/utils`
 
-Utility functions for preprocessing, postprocessing, metrics and visualization.
+Utility functions for preprocessing, sorting, decisional-set generation, time evaluation and residual-memory estimation.
+
+### `src/visualization`
+
+MATLAB scripts for console output, graph generation, HTML/image visualization and result inspection.
 
 ### `data/sample`
 
-Small sanitized sample datasets used to reproduce the workflow without exposing private or course-specific files.
-
-### `docs`
-
-Technical notes about the mathematical model, constraints, algorithm flow and assumptions.
+Sample MATLAB datasets used to reproduce the workflow.
 
 ### `results/plots`
 
-Generated plots and figures showing fill ratio, execution time and comparison between priority rules.
+Exported result plots generated during the original project work.
 
-### `reports`
+---
 
-Optional summarized documentation or exported project notes.
+## How to run
+
+Open MATLAB from the repository root and add the source folders to the path:
+
+```matlab
+addpath(genpath('src'));
+addpath(genpath('data/sample'));
+```
+
+Then run the available entry-point scripts in `src/`, such as:
+
+```matlab
+evalResultMain
+```
+
+or inspect the optimization functions under `src/core/OptimizationAlgorithm`.
+
+---
+
+## Notes
+
+Compressed simulation archives and intermediate generated files are intentionally excluded from the repository.
+
+The repository contains the MATLAB implementation, sample datasets and selected result plots required to document the project workflow.
 
 ---
 
 ## Status
 
-Repository skeleton initialized. Source code, sample data and results will be added progressively.
+MATLAB implementation imported from the delivered project folder. Further documentation and result summaries will be added progressively.
