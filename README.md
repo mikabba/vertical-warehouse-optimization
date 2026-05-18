@@ -402,12 +402,11 @@ Current limitations:
 
 Possible extensions include:
 
-- evaluating additional warehouse configurations with different tray-height distributions;
-- extending the benchmark to larger datasets and more heterogeneous scenarios;
-- comparing the current priority-rule approach with alternative optimization strategies;
-- improving execution time for computationally expensive priority rules;
-- adding automated scripts to reproduce all benchmark scenarios from a single entry point;
-- exporting simulation results to structured CSV or MATLAB tables for easier comparison.
+- extending the analysis to additional tray-height distributions and warehouse configurations;
+- benchmarking the priority rules on larger and more heterogeneous datasets;
+- improving the computational efficiency of the most expensive priority rules;
+- comparing the proposed allocation strategy with alternative optimization methods;
+- adding automated scripts to reproduce the full benchmark campaign.
 
 ---
 
