@@ -402,11 +402,12 @@ Current limitations:
 
 Possible extensions include:
 
-- adding automated scripts to reproduce all benchmark scenarios;
-- exporting results automatically to CSV tables;
-- adding unit tests for priority-rule functions;
-- adding benchmark plots for execution time and number of columns;
-- comparing the current approach with alternative metaheuristics or mixed-integer optimization solvers.
+- evaluating additional warehouse configurations with different tray-height distributions;
+- extending the benchmark to larger datasets and more heterogeneous scenarios;
+- comparing the current priority-rule approach with alternative optimization strategies;
+- improving execution time for computationally expensive priority rules;
+- adding automated scripts to reproduce all benchmark scenarios from a single entry point;
+- exporting simulation results to structured CSV or MATLAB tables for easier comparison.
 
 ---
 
