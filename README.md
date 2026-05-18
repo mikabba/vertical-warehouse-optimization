@@ -10,6 +10,7 @@
 MATLAB project for optimizing tray allocation in Vertical Lift Modules (VLMs), with the goal of reducing wasted space, maximizing column fill ratio, and comparing different allocation priority rules.
 
 The project models the storage of trays with different heights inside fixed-height warehouse columns. It evaluates how different priority criteria affect the final storage configuration, the number of columns used, the remaining free space, and the execution time.
+
 <p align="center">
   <img src="assets/vertical-warehouse-overview.png" alt="Vertical warehouse overview" width="700"/>
 </p>
