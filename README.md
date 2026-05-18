@@ -1,116 +1,50 @@
 ﻿# Vertical Warehouse Optimization
 
-MATLAB project for optimizing tray allocation in Vertical Lift Modules (VLMs), with a focus on storage-space utilization, column fill ratio, priority-rule comparison and memory-aware implementation.
+MATLAB project for optimizing tray allocation in Vertical Lift Modules (VLMs), with the goal of reducing wasted space, maximizing column fill ratio, and comparing different allocation priority rules.
 
-The project models the allocation of trays with different heights inside fixed-height warehouse columns. Full trays are allocated first; then empty trays are inserted into the remaining free space when useful, in order to improve the final fill ratio.
-
-<p align="center">
-  <img src="assets/algorithm-workflow.png" alt="Algorithm workflow" width="720">
-</p>
+The project models the storage of trays with different heights inside fixed-height warehouse columns. It evaluates how different priority criteria affect the final storage configuration, the number of columns used, the remaining free space, and the execution time.
 
 ---
 
-## Project scope
+## Overview
 
-Vertical Lift Modules are automated storage systems that exploit vertical space to reduce floor usage and improve material handling efficiency. This project focuses on the internal allocation problem: given a set of trays, tray quantities and column-height constraints, determine how trays should be assigned to columns while reducing unused vertical space.
+Vertical Lift Modules are automated storage systems that exploit vertical space to reduce floor usage and improve material handling efficiency.
 
-The case study is inspired by ICAM SILO² vertical warehouse configurations. The implemented solution is a MATLAB-based optimization workflow developed for an academic project in Dynamical Systems Theory.
+This project focuses on the optimization of tray allocation inside vertical warehouse columns. Given a set of tray types, tray quantities, and column-height constraints, the algorithm determines how trays should be assigned to columns while minimizing unused vertical space.
+
+The case study is inspired by ICAM SILO² vertical warehouse configurations.
 
 ---
 
-## Engineering problem
+## Problem statement
 
-The input problem is defined by:
+The input of the problem is a set of trays characterized by:
 
-- tray heights;
-- tray quantities;
+- tray height;
+- tray quantity;
 - number of tray types;
 - fixed column height;
-- handling clearance between trays;
-- selected allocation priority rule.
+- handling clearance between trays.
 
-The objective is to obtain a feasible column allocation that:
+The objective is to allocate full trays into fixed-height columns and then use empty trays to reduce the remaining free space.
 
-- respects the geometric column-height constraint;
-- does not allocate more trays than those available;
-- follows the selected priority rule;
-- avoids empty columns;
-- minimizes residual free space;
-- improves the final fill ratio by inserting empty trays where possible.
+The main goals are:
 
----
-
-## Case-study parameters
-
-The reference simulations use:
-
-| Quantity | Values |
-|---|---|
-| Tray heights | 75, 125, 225, 325 mm |
-| Column heights | 3000, 9000, 15000 mm |
-| Handling clearance | 25 mm |
-| Scenario sizes | 12, 24, 48 trays |
-| Scenario distributions | homogeneous and heterogeneous |
-| Evaluation metrics | fill ratio, free space, number of columns, execution time |
-
-The repository contains a cleaned version of the MATLAB implementation and sample project material prepared for reproducibility and portfolio publication.
+- maximize the occupied space in each column;
+- minimize the unused vertical space;
+- reduce the number of required columns;
+- compare different priority rules;
+- evaluate fill ratio, residual free space, execution time, and number of columns used.
 
 ---
 
-## Business rules
+## Input data
 
-The optimization procedure is based on the following rules:
+The simulations use several warehouse and tray configurations.
 
-1. A handling clearance must be considered between trays.
-2. The total height of trays assigned to a column must not exceed the column height.
-3. The number of trays assigned to a column must not exceed the available quantity for each tray type.
-4. The number of trays assigned by type must be coherent with the selected priority rule.
-5. The frequency of empty trays should not exceed the frequency of full trays for each tray type.
-6. Empty columns are not considered valid allocations.
+Main input parameters:
 
----
-
-## Algorithm workflow
-
-The algorithm is organized into three stages.
-
-### 1. Pre-processing
-
-Input data are prepared before optimization:
-
-- tray heights and quantities are organized in MATLAB structures;
-- tray vectors are checked and reshaped when necessary;
-- handling clearance is added to tray heights;
-- trays are sorted in descending height order;
-- the selected priority rule is applied;
-- an initial number of columns is estimated.
-
-### 2. Processing
-
-The full-tray allocation problem is solved:
-
-- trays are ordered according to the selected priority rule;
-- feasible combinations are evaluated;
-- the best allocation is selected under geometric, availability and priority constraints;
-- the result is reordered to preserve a consistent tray-height representation.
-
-### 3. Post-processing
-
-The allocation is refined:
-
-- the initial column estimate is corrected;
-- remaining free space is computed for each column;
-- columns with enough residual height are selected;
-- empty trays are allocated when they improve space usage;
-- final fill ratio, free space, number of columns and execution time are computed.
-
----
-
-## Mathematical model summary
-
-The model uses integer decision variables for tray allocation.
-
-| Symbol | Meaning |
+| Parameter | Meaning |
 |---|---|
 | `N` | Total number of trays |
 | `T` | Number of tray types |
@@ -119,196 +53,292 @@ The model uses integer decision variables for tray allocation.
 | `in_i` | Quantity of tray type `i` already inserted |
 | `hC` | Column height |
 | `hCf` | Remaining free height in a column |
+
+The reference study considers:
+
+| Quantity | Values |
+|---|---|
+| Tray heights | 75, 125, 225, 325 mm |
+| Column heights | 3000, 9000, 15000 mm |
+| Handling clearance | 25 mm |
+| Scenario sizes | 12, 24, and 48 trays |
+| Tray distributions | Homogeneous and heterogeneous |
+
+---
+
+## Business rules
+
+The optimization model is subject to the following business rules:
+
+1. A handling clearance must be present between trays to allow the picking mechanism to operate.
+2. The total tray height inside a column must not exceed the column height.
+3. The number of trays assigned to a column must not exceed the available quantity for each tray type.
+4. The tray quantities assigned to a column must respect the selected priority rule.
+5. Empty-tray frequency must not exceed the frequency of full trays of the same type.
+6. Empty columns are not considered feasible allocation results.
+
+---
+
+## Methodology
+
+The algorithm is organized into three main phases.
+
+### 1. Pre-processing
+
+Input data are prepared and the number of required columns is estimated. The selected priority rule is applied to define the preferred ordering of tray types.
+
+The tray order may change depending on the selected rule, so an additional descending-height order is kept to make result comparison consistent.
+
+### 2. Processing
+
+Full trays are allocated into columns according to the selected priority rule.
+
+For each column, the algorithm solves an integer optimization problem that maximizes the occupied height while satisfying geometric, availability, and priority constraints.
+
+### 3. Post-processing
+
+The initial column estimate is refined, and the remaining free height in each column is evaluated.
+
+If the residual free space is large enough to host at least the smallest tray type, a second optimization step is performed to insert empty trays and reduce unused vertical space.
+
+The implemented workflow follows the structure shown below.
+
+![Algorithm workflow](assets/algorithm-workflow.png)
+
+---
+
+## Mathematical model
+
+The optimization model uses integer decision variables representing the number of trays of each type assigned to a column.
+
+| Variable | Meaning |
+|---|---|
 | `x1_i` | Number of full trays of type `i` assigned to a column |
-| `x2_i` | Number of empty trays of type `i` assigned to a column |
+| `x2_i` | Number of empty trays of type `i` assigned to the residual free space |
 
 ### Full-tray allocation
 
-The full-tray model maximizes the occupied height in a column:
+The first optimization step maximizes the occupied height in a column:
 
 ```text
-maximize sum_i x1_i * a_i
+maximize sum(x1_i * a_i)
 ```
 
 subject to:
 
 ```text
-sum_i x1_i * a_i <= hC
+sum(x1_i * a_i) <= hC
 x1_i + in_i <= n_i
-x1_i >= 0, integer
+x1_i >= 0 and integer
 ```
 
-Additional constraints enforce the selected priority rule and exclude empty column allocations.
+Additional priority constraints are introduced to enforce the selected tray-ordering rule.
 
 ### Empty-tray allocation
 
-The empty-tray model is applied to the remaining free height:
+The second optimization step is applied to the residual free space after full-tray allocation.
+
+It maximizes the height occupied by empty trays:
 
 ```text
-maximize sum_i x2_i * a_i - y
+maximize sum(x2_i * a_i)
 ```
 
 subject to:
 
 ```text
-sum_i x2_i * a_i <= hCf
-x2_i >= 0, integer
+sum(x2_i * a_i) <= hCf
+x2_i >= 0 and integer
 ```
 
-A frequency constraint is used to keep the distribution of empty trays coherent with the distribution of full trays.
+A frequency constraint is also used so that the distribution of empty trays remains coherent with the distribution of full trays.
 
 ---
 
 ## Priority rules
 
-The project compares several allocation priority rules. These rules define the order in which tray types are selected during optimization.
+The allocation order is not fixed. The project evaluates several priority rules, labelled from **A** to **P**, to define how tray types are ranked before solving the allocation problem.
 
-The rules represent different trade-offs between:
+The priority rules represent different allocation heuristics, including:
 
-- prioritizing larger trays;
-- prioritizing more frequent tray types;
-- combining height and quantity information;
-- selecting trays according to pseudo-increasing quantity thresholds;
-- improving the final column fill ratio.
+- prioritizing larger tray heights;
+- prioritizing tray types with larger available quantities;
+- combining height and frequency information;
+- using pseudo-increasing quantity thresholds;
+- considering the ratio between column height and tray height;
+- prioritizing tray types that are more likely to reduce free space.
 
-The priority-rule comparison is one of the main outputs of the project, because different rules can lead to different fill-ratio and execution-time behaviours.
+This allows the algorithm to compare different allocation logics under the same warehouse and dataset conditions.
+
+The implemented rules can be interpreted as a trade-off between two competing ideas:
+
+1. allocate larger trays first to reduce large unused gaps;
+2. allocate more frequent tray types first to better exploit the available inventory.
+
+The result plots compare how these priority rules affect fill ratio, residual free space, execution time, and column usage.
 
 ---
 
-## MATLAB implementation
+## Implementation details
 
-The main optimization entry point has the following structure:
+The MATLAB implementation follows the algorithmic structure of the model.
 
-```matlab
-function output = optimizationAlgorithm(input, spazioDiPresa, altezzaColonna, priorityRule)
+Typical function responsibilities are:
 
-    %% Pre-processing
-    input.tipologieVassoi = input.vassoi;
-    input.vassoi = input.vassoi + spazioDiPresa;
-    input = preProcessing(input, altezzaColonna, priorityRule);
+| Component | Role |
+|---|---|
+| `preProcessing` | Estimates the number of columns and prepares tray ordering |
+| `processing` | Allocates full trays according to the selected priority rule |
+| `postProcessing` | Refines column usage and inserts empty trays where useful |
+| `optimizationAlgorithm` | Coordinates the full optimization workflow |
+| `optimizationFullTray` | Solves the full-tray allocation problem |
+| `optimizationNewTray` | Solves the empty-tray allocation problem |
+| `PriorityRules` | Implements the tray-ordering heuristics |
+| `evalResult` / `evalResultMain` | Runs simulations and evaluates performance metrics |
 
-    %% Processing
-    work = processing(input);
-
-    %% Post-processing
-    output = postProcessing(work);
-
-end
-```
-
-The repository is organized so that the main implementation logic is separated into:
-
-- `src/core/` for the main allocation and optimization logic;
-- `src/priority-rules/` for priority-rule functions;
-- `src/utils/` for support functions and metrics;
-- `src/visualization/` for plotting and result visualization;
-- `data/sample/` for sample datasets;
-- `results/plots/` for generated plots and visual outputs.
+The repository contains a cleaned version of the delivered MATLAB implementation, organized for easier inspection and reuse.
 
 ---
 
 ## RAM-aware feasibility generation
 
-A relevant implementation issue is the generation of feasible combinations for the optimization search space.
+Some parts of the algorithm require generating feasible tray combinations. For large scenarios, the number of combinations can grow quickly and may exceed the available MATLAB workspace memory.
 
-The algorithm may generate large matrices containing the possible values of the integer decision variables. Since these matrices are stored as MATLAB `double` arrays, their memory footprint can become large and may trigger a runtime `Out of memory` exception.
+To reduce the risk of `Out of memory` errors, the implementation includes a RAM-aware feasibility-generation strategy.
 
-To avoid uncontrolled crashes, the implementation uses nested `try/catch` blocks and progressively reduces the size of the generated feasibility matrix.
+The strategy is based on:
 
-The fallback logic is:
+- estimating the size of candidate combination matrices;
+- monitoring residual workspace memory;
+- using `try/catch` blocks around memory-intensive generation steps;
+- progressively reducing generation limits when memory errors occur;
+- using fallback limits based on average and minimum tray quantities.
 
-1. generate the full set of feasible combinations;
-2. if MATLAB raises an `Out of memory` exception, limit the decision-variable ranges using average admissible quantities;
-3. if memory is still insufficient, limit the ranges using minimum admissible quantities;
-4. if the problem is still too large, compute a RAM-based upper bound using the residual available memory.
+This makes the implementation more robust when running large configurations or priority rules that generate many candidate allocations.
 
-The implementation estimates the residual memory and uses it to define a safer maximum number of generated values.
+---
 
-For a matrix of `double` values, the memory-aware logic considers:
+## Evaluation metrics
+
+The project evaluates each simulation scenario using four main metrics.
+
+### Fill ratio
+
+Fill ratio measures the percentage of available vertical storage height that is occupied.
+
+For a single column:
 
 ```text
-8 bytes per double value
-available residual memory M
-number of tray types alpha
-number of generated combinations
-binary coefficients associated with tray-type selection
+fill_ratio = occupied_height / column_height * 100
 ```
 
-This is a key engineering feature of the project: the implementation is not only a mathematical formulation, but also includes practical safeguards against combinatorial memory growth.
+Two fill-ratio variants are considered:
+
+- **full-tray fill ratio**: computed after allocating full trays only;
+- **final fill ratio**: computed after inserting empty trays in the post-processing phase.
+
+### Residual free space
+
+Residual free space measures the unused height left in a column after tray allocation.
+
+For a single column:
+
+```text
+residual_free_space = column_height - occupied_height
+```
+
+This metric is evaluated after full-tray allocation and again after empty-tray insertion.
+
+### Number of columns
+
+The number of columns represents how many storage columns are required to allocate the input tray set.
+
+The algorithm first estimates an upper bound during pre-processing, then removes unnecessary empty columns during post-processing.
+
+### Execution time
+
+Execution time measures the computational cost of a simulation scenario.
+
+It depends on:
+
+- total tray quantity;
+- number of tray types;
+- column height;
+- selected priority rule;
+- homogeneous or heterogeneous tray distribution;
+- feasibility-generation complexity.
 
 ---
 
 ## Results
 
-The project evaluates each configuration using:
+The simulations compare multiple datasets, column heights, scenario sizes, tray distributions, and priority rules.
 
-- fill ratio;
-- residual free space;
-- number of columns;
-- execution time.
+The first result view compares fill ratio across priority rules before and after inserting empty trays.
 
-The simulations compare different datasets, column heights and priority rules.
+![Fill ratio by priority rule](assets/fill-ratio-priority-rules.png)
 
-<p align="center">
-  <img src="assets/fill-ratio-priority-rules.png" alt="Fill ratio by priority rule" width="760">
-</p>
+The second result view shows the final fill ratio by column and priority rule after the insertion of empty trays.
 
-A second analysis evaluates the improvement obtained by inserting empty trays into the remaining free space.
+![Fill ratio with full and empty trays](assets/fill-ratio-full-empty-trays.png)
 
-<p align="center">
-  <img src="assets/fill-ratio-full-empty-trays.png" alt="Fill ratio with full and empty trays" width="760">
-</p>
+### Results interpretation
+
+The README reports the same metrics used by the MATLAB evaluation scripts. The table below explains how each metric should be read when inspecting the generated plots and numerical outputs.
+
+| Metric | How it is computed | What to inspect |
+|---|---|---|
+| Fill ratio | `occupied_height / available_height * 100` | Compare full-tray allocation against final allocation after empty-tray insertion. |
+| Residual free space | `column_height - occupied_height` | Check how much unused vertical height remains after each allocation phase. |
+| Number of columns | Count of columns required by the final allocation | Verify whether the final layout stays within the expected VLM column limit. |
+| Execution time | Runtime of each scenario / priority-rule simulation | Identify priority rules that produce high computational cost. |
+
+### Visual result mapping
+
+| Result shown in README | Metrics represented |
+|---|---|
+| `fill-ratio-priority-rules.png` | Fill ratio and residual free space before/after empty-tray insertion, grouped by priority rule. |
+| `fill-ratio-full-empty-trays.png` | Final fill ratio by column and priority rule after post-processing. |
+| MATLAB numerical outputs | Number of columns, execution time, residual free space, and final warehouse configuration. |
 
 Main observations:
 
-- the algorithm generates feasible tray allocations under column-height constraints;
-- different priority rules can lead to different fill-ratio and execution-time behaviours;
-- the post-processing phase improves space usage by inserting empty trays where possible;
-- in most tested cases, the final fill ratio is approximately 100%;
-- execution time is generally low for most rules and scenarios, with some critical cases caused by combinatorial growth;
-- the number of columns is reduced compared with an over-estimated initial allocation.
+- the post-processing phase significantly improves storage usage by inserting empty trays into residual free spaces;
+- the final fill ratio reaches values close to 100% in several tested configurations after empty-tray insertion;
+- residual free space is reduced after the second optimization step;
+- execution time varies across priority rules and scenario complexity;
+- some priority rules are computationally more expensive because they generate larger feasible-combination sets.
+
+Future README improvements may include dedicated plots for execution time and column usage once the corresponding exported figures are selected or regenerated from MATLAB.
 
 ---
 
 ## How to reproduce
 
-### 1. Clone the repository
+Open MATLAB and set the repository root as the current working directory.
 
-```bash
-git clone https://github.com/mikabba/vertical-warehouse-optimization.git
-cd vertical-warehouse-optimization
-```
-
-### 2. Open MATLAB
-
-Set the repository root as the current MATLAB working directory.
-
-### 3. Add source folders to the MATLAB path
+Add all source folders to the MATLAB path:
 
 ```matlab
 addpath(genpath("src"));
-addpath(genpath("data"));
 ```
 
-### 4. Run the evaluation script
+Run the main evaluation script:
 
 ```matlab
-run("src/evalResultMain.m")
+src/evalResultMain.m
 ```
 
-Depending on the selected dataset and configuration, the scripts evaluate the allocation performance and generate result metrics and plots.
+Depending on the selected dataset and configuration, the scripts evaluate the allocation performance and generate result plots.
 
-### 5. Inspect results
+A typical reproduction workflow is:
 
-Generated or imported result material can be found in:
-
-```text
-results/plots/
-docs/source-code-map.md
-docs/results-summary.md
-```
-
-If MATLAB path errors occur, verify that all subfolders under `src/` are included with `addpath(genpath("src"))`.
+1. select a dataset from `data/sample`;
+2. choose the column height `hC`;
+3. choose the number of tray types `T`;
+4. select a priority rule;
+5. run the optimization workflow;
+6. inspect the generated fill ratio, residual free space, number of columns, and execution time.
 
 ---
 
@@ -345,21 +375,26 @@ vertical-warehouse-optimization/
 
 ## Requirements
 
+The project was developed in MATLAB.
+
 Recommended environment:
 
 - MATLAB R2022a or newer;
 - Optimization Toolbox, if required by the selected optimization functions;
-- standard MATLAB plotting utilities.
-
-The original project was developed and tested in MATLAB R2022a.
+- basic MATLAB plotting utilities for result visualization.
 
 ---
 
 ## Limitations
 
-This repository contains a cleaned version of the academic implementation. Some heavy generated outputs, compressed archives and temporary simulation files are intentionally excluded from version control.
+This repository is a cleaned portfolio version of the original academic project.
 
-The current implementation is based on explicit feasible-combination generation. This is useful for understanding and validating the model, but it can become memory-intensive for large scenarios.
+Current limitations:
+
+- only selected datasets and outputs are included;
+- generated archives and heavy simulation outputs are excluded;
+- execution time can increase significantly for large feasible-combination sets;
+- some priority rules may become computationally expensive for larger scenarios.
 
 ---
 
@@ -367,12 +402,11 @@ The current implementation is based on explicit feasible-combination generation.
 
 Possible extensions include:
 
-- replacing brute-force feasible-combination generation with more scalable optimization methods;
-- implementing heuristic or evolutionary algorithms;
-- integrating order-picking or throughput criteria;
-- extending the model to multi-objective optimization;
-- improving dataset configuration and automated experiment reproducibility;
-- adding unit tests for priority rules and allocation constraints.
+- adding automated scripts to reproduce all benchmark scenarios;
+- exporting results automatically to CSV tables;
+- adding unit tests for priority-rule functions;
+- adding benchmark plots for execution time and number of columns;
+- comparing the current approach with alternative metaheuristics or mixed-integer optimization solvers.
 
 ---
 
@@ -391,4 +425,5 @@ Project developed for the **Dynamical Systems Theory** course, MSc in Automation
 
 ## Status
 
-Cleaned engineering version prepared for GitHub portfolio publication.
+Cleaned repository version prepared for GitHub portfolio publication.
+
